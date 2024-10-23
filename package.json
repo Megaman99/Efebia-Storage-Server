@@ -1,0 +1,21 @@
+{
+  "name": "efebia-storage-server",
+  "version": "1.0.0",
+  "description": "storage Server Project for Efebia",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "start": "nodemon ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Emanuele Campora",
+  "license": "ISC",
+  "dependencies": {
+    "fastify": "^5.0.0",
+    "fs": "^0.0.1-security",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.7"
+  }
+}
