@@ -1,1 +1,2 @@
 {"email":"20029451@studenti.uniupo.it","password":"$2b$10$9qp8GI4IS9NERaHMmGvbfuOqEBzYK7OSu7naSdGuKPEzlGZkOEnLC"}
+{"email":"emanuelec99@libero.it","password":"$2b$10$r4MqhBt.eBm5FevMU1RwDem6gW9dLkersANzQ0L7gn9hQN5cGOnqK"}
