@@ -2,19 +2,19 @@
 
 async function routes (fastify, options) {
     fastify.post('/data', async (request, reply) => {
-        return { title: 'Data' }
+        reply.send({ title: 'Data' })
     })
     
     fastify.get('/data/:key', async (request, reply) => {
-        return { title: '' }
+        reply.send({ title: '' })
     })
 
     fastify.patch('/data/:key', async (request, reply) => {
-        return { title: '' }
+        reply.send({ title: '' })
     })
 
     fastify.delete('/data/:key', async (request, reply) => {
-        return { title: 'Delete' }
+        reply.send({ title: 'Delete' })
     })
 }
 
