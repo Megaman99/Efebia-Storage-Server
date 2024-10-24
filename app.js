@@ -4,7 +4,10 @@ import Fastify from 'fastify'
 import firstRoute from './routes/user.js'
 
 const fastify = Fastify({
-  logger: true
+  logger: false
+  // {
+  //   prettyprint: true
+  // }
 })
 fastify.register(firstRoute)
 
