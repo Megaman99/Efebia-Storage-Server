@@ -97,6 +97,8 @@ async function routes (fastify, options) {
         console.log('Email: ', email)
         const password = request.body.password;
         console.log('Password: ', password)
+        const role = request.body.role;
+        console.log('Role', role)
         
         let users = fs.readFileSync(userFilePath, 'utf-8');
         users = JSON.parse(users || '[]')
@@ -109,7 +111,7 @@ async function routes (fastify, options) {
         cript.update(password)
         const hash_pwd = cript.digest('hex')
 
-        const user = users.find(user => user.email === email && user.password === hash_pwd);
+        const user = users.find(user => user.email === email && user.password === hash_pwd && user.role === role);
         if (!user) {
             return reply.status(401).send({ message: 'Credenziali non valide' });
         }
@@ -119,9 +121,38 @@ async function routes (fastify, options) {
         return reply.send({ token });
     })
 
+
+    // Verifica JWT
+    fastify.decorate("authenticate", async function(request, reply) {
+        try {
+            await request.jwtVerify()
+        } catch (err) {
+            reply.send(err)
+        }
+    })
+
     // Delete
-    fastify.delete('/delete', async (request, reply) => {
-        reply.send( { title: 'Delete' })
+    fastify.delete('/delete', {
+            onRequest: [fastify.authenticate]
+        }, async (request, reply) => {
+
+        let users = fs.readFileSync(userFilePath, 'utf-8');
+        users = JSON.parse(users || '[]')
+        if(!Array.isArray(users)){
+            users = [];
+        }
+
+        const userIndex = users.findIndex(user => user.id === request.user.id);
+
+        if (userIndex === -1) {
+        return reply.status(404).send({ message: 'Utente non trovato' });
+    }
+
+        users.splice(userIndex, 1);
+
+        fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
+
+        return reply.send({ message: 'Utente eliminato con successo' });
     })
 }
 
