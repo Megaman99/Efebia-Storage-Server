@@ -1,7 +1,8 @@
 'use strict'
 
 import Fastify from 'fastify'
-import firstRoute from './routes/user.js'
+import userRoute from './routes/user.js'
+import dataRoute from './routes/data.js'
 
 const fastify = Fastify({
   logger: true
@@ -9,7 +10,8 @@ const fastify = Fastify({
   //   prettyprint: true
   // }
 })
-fastify.register(firstRoute)
+fastify.register(userRoute)
+fastify.register(dataRoute)
 
 fastify.listen({ port: 3000 }, function (err, address) {
   if (err) {

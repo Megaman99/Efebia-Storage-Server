@@ -2,8 +2,19 @@
 
 import crypto from 'crypto'
 
-async function routes (fastify, options) {
+async function dataRoutes (fastify, options) {
+
+    // Verifica JWT
+    fastify.decorate("authenticate", async function(request, reply) {
+        try {
+            await request.jwtVerify()
+        } catch (err) {
+            reply.send(err)
+        }
+    })
+
     fastify.post('/data', {
+        onRequest: [fastify.authenticate],
         schema: {
             body: {
                 type: 'object',
@@ -44,23 +55,29 @@ async function routes (fastify, options) {
         return reply.send({ message: `Dato scritto correttamente` })
     })
     
-    fastify.get('/data/:key', async (request, reply) => {
+    fastify.get('/data/:key', {
+        onRequest: [fastify.authenticate]
+    }, async (request, reply) => {
         const key = request.params.key;
 
         reply.send({ title: '' })
     })
 
-    fastify.patch('/data/:key', async (request, reply) => {
+    fastify.patch('/data/:key', {
+        onRequest: [fastify.authenticate]
+    }, async (request, reply) => {
         const key = request.params.key;
 
         reply.send({ title: '' })
     })
 
-    fastify.delete('/data/:key', async (request, reply) => {
+    fastify.delete('/data/:key', {
+        onRequest: [fastify.authenticate],
+    }, async (request, reply) => {
         const key = request.params.key;
-
+        
         reply.send({ title: 'Delete' })
     })
 }
 
-export default routes
+export default dataRoutes

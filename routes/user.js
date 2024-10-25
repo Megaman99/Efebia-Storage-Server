@@ -9,7 +9,7 @@ import fastifyJwt from '@fastify/jwt'
 //     secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
 // }
 
-async function routes (fastify, options) { 
+async function userRoutes (fastify, options) { 
     
     fastify.register(fastifyJwt, {
         secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
@@ -156,4 +156,4 @@ async function routes (fastify, options) {
     })
 }
 
-export default routes
+export default userRoutes
