@@ -1,0 +1,36 @@
+[
+  {
+    "email": "emanuele@gmail.com",
+    "data": [
+      {
+        "key": "test",
+        "data": "Testo di prova"
+      },
+      {
+        "key": "prova",
+        "data": "Prova route data"
+      },
+      {
+        "key": "hello",
+        "data": "U2FsdXRp"
+      }
+    ]
+  },
+  {
+    "email": "20029451@studenti.uniupo.it",
+    "data": [
+      {
+        "key": "Ok",
+        "data": "Messaggio"
+      },
+      {
+        "key": "ciao",
+        "data": "Route data"
+      },
+      {
+        "key": "Greetings",
+        "data": "U2FsdXRp"
+      }
+    ]
+  }
+]

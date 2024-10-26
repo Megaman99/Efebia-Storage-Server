@@ -1,12 +1,12 @@
 [
   {
-    "email": "emanuele@gmail.com",
-    "password": "d9b5f58f0b38198293971865a14074f59eba3e82595becbe86ae51f1d9f1f65e",
+    "email": "20029451@studenti.uniupo.it",
+    "password": "3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2",
     "role": "admin"
   },
   {
-    "email": "20029451@studenti.uniupo.it",
-    "password": "3b612c75a7b5048a435fb6ec81e52ff92d6d795a8b5a9c17070f6a63c97a53b2",
+    "email": "emanuele@gmail.com",
+    "password": "a61a8adf60038792a2cb88e670b20540a9d6c2ca204ab754fc768950e79e7d36",
     "role": "user"
   }
 ]
