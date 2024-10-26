@@ -1,0 +1,22 @@
+[
+    {
+        "email": ,
+        "data": [
+            {
+                "key": nomefile,
+                "data": datifile
+            },
+            {
+                "key": ,
+                "data": ,
+            }
+        ]
+    },
+    {
+        "email":
+        "data": [
+
+            
+        ]
+    }
+]
