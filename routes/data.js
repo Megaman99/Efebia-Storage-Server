@@ -1,8 +1,22 @@
 'use strict'
 
+import fs, { readFileSync } from 'fs'
 import crypto from 'crypto'
+import fastify from 'fastify'
+import fastifyJwt from '@fastify/jwt'
 
 async function dataRoutes (fastify, options) {
+
+    fastify.register(fastifyJwt, {
+        secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
+    })
+
+    const userFilePath = './data.json'
+    
+    if (!fs.existsSync(userFilePath)) {
+        fs.writeFileSync(userFilePath, '[]', 'utf8');
+    }
+
 
     // Verifica JWT
     fastify.decorate("authenticate", async function(request, reply) {
@@ -18,40 +32,79 @@ async function dataRoutes (fastify, options) {
         schema: {
             body: {
                 type: 'object',
-                required: ['email', 'password'],
+                required: ['key', 'data'],
                 properties: {
-                    email: {type: 'string', format: 'email'},
-                    password: {type: 'string'}
+                    key: {type: 'string'},
+                    data: {type: 'string'}
                 }
             }
         }
     }, async (request, reply) => {
-        const password = request.body.password;
-        console.log('Text: ', password)
-        const email = request.body.email;
-        console.log('Email: ', email)
+        const message = request.body.data;
+        console.log('Message: ', message)
+        // Controllare key in modo che non ci siano duplicati
+        // Capire se si vogliono più dati per lo stesso utente
 
-        const cript = crypto.createHash('sha256')
-        console.log('Cript: ', cript)
-        cript.update(password)
+        console.log('Questa è la request: ', request)
+        const key = request.body.key;
+        const email = request.user.email;
 
-        const hash = cript.digest('hex')
+        let data = fs.readFileSync(userFilePath, 'utf-8');
+        data = JSON.parse(data || '[]')
+        if(!Array.isArray(data)){
+            data = [];
+        }
+        console.log('Lettura file data: ', data)
 
-        console.log('Hash: ', hash)
+        // let user_data;
 
-        const user = {
-            email: email,
-            password: hash
-        };
+        await data.find((dat) => {
+            if(dat.email === email){
+                let user_data = dat.data.find((obj) => {
+                    obj.key === key
+                })
+                if(user_data){
+                    return reply.status(401).send({ message: 'Esiste già una risorsa con questo nome' });
+                }
+                else{
+                    const buffer = Buffer.from(message)
+        
+                    const new_message = buffer.toString('base64')
+                    console.log('New Message', new_message)
+                    
 
-        const userData = JSON.stringify(user);
+                    const new_data = {
+                        key: key,
+                        data: new_message
+                    };
 
-        fs.appendFile('./data.json', userData, err => {
-            if (err) {
-                return reply.send({ message: 'Errore nella scrittura del file' })
+                    dat.data.push(new_data)
+
+                    // const userData = JSON.stringify(new_data);
+                    fs.writeFile(userFilePath, JSON.stringify(data, null, 2), (err) => {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            console.log('Dati aggiunti con successo!');
+                        }
+                    })
+                }
             }
         });
+
+        // console.log('user_data', user_data);
         
+        // if (user_data) {
+        //     return reply.status(401).send({ message: 'Esiste già una risorsa con questo nome' });
+        // }
+
+        
+        // fs.appendFile(userFilePath, userData, err => {
+        //     if (err) {
+        //         return reply.send({ message: 'Errore nella scrittura del file' })
+        //     }
+        // });
+
         return reply.send({ message: `Dato scritto correttamente` })
     })
     
