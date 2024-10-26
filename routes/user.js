@@ -4,7 +4,7 @@ import fs, { readFileSync } from 'fs'
 import crypto from 'crypto'
 import fastify from 'fastify'
 import fastifyJwt from '@fastify/jwt'
-import { v4 as uuidv4 } from 'uuid';
+// import { v4 as uuidv4 } from 'uuid';
 
 
 async function userRoutes (fastify, options) { 
@@ -40,6 +40,8 @@ async function userRoutes (fastify, options) {
         let role = request.body.role;
         console.log('Role: ', role)
 
+        // const {email, password} = request.body;
+
         if(role !== 'admin' && role!== 'user'){
             role = 'user';
         }
@@ -53,7 +55,7 @@ async function userRoutes (fastify, options) {
 
         if (users.find(user => user.email === email)) {
             console.log('Controllo user: ', users)
-            return reply.status(400).send({ message: 'Utente già registrato' });
+            return reply.status(400).send({ message: 'Utente già registrato' }); //Cercare errore giusto
         }
 
         const cript = crypto.createHash('sha256')
@@ -64,11 +66,11 @@ async function userRoutes (fastify, options) {
 
         console.log('Hash: ', hash)
 
-        const id_user = uuidv4();
-        console.log('Id utente', id_user)
+        // const id_user = uuidv4();
+        // console.log('Id utente', id_user)
 
         const new_user = {
-            id_user: id_user,
+            // id_user: id_user,
             email: email,
             password: hash,
             role: role
@@ -147,13 +149,17 @@ async function userRoutes (fastify, options) {
 
         console.log('Utenti file eliminazione', request)
 
-        const userIndex = users.findIndex(user => user.id === request.user.id);
+        const userIndex = users.findIndex(user => user.email === request.user.email);
 
         if (userIndex === -1) {
-        return reply.status(404).send({ message: 'Utente non trovato' });
-    }
+            return reply.status(404).send({ message: 'Utente non trovato' });
+        }
+
+        console.log('Users: ', users)
 
         users.splice(userIndex, 1);
+
+        console.log('Users: ', users)
 
         fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
 
