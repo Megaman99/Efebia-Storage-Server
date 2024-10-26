@@ -4,10 +4,8 @@ import fs, { readFileSync } from 'fs'
 import crypto from 'crypto'
 import fastify from 'fastify'
 import fastifyJwt from '@fastify/jwt'
-// import fastify from 'fastify'
-// fastify.register(), {
-//     secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
-// }
+import { v4 as uuidv4 } from 'uuid';
+
 
 async function userRoutes (fastify, options) { 
     
@@ -15,11 +13,12 @@ async function userRoutes (fastify, options) {
         secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
     })
 
-    if (!fs.existsSync('./users.json')) {
-        fs.writeFileSync('./users.json', '[]', 'utf8');
+    const userFilePath = './users.json'
+
+    if (!fs.existsSync(userFilePath)) {
+        fs.writeFileSync(userFilePath, '[]', 'utf8');
     }
 
-    const userFilePath = './users.json'
 
     // Register
     fastify.post('/register', {
@@ -65,7 +64,11 @@ async function userRoutes (fastify, options) {
 
         console.log('Hash: ', hash)
 
+        const id_user = uuidv4();
+        console.log('Id utente', id_user)
+
         const new_user = {
+            id_user: id_user,
             email: email,
             password: hash,
             role: role
@@ -141,6 +144,8 @@ async function userRoutes (fastify, options) {
         if(!Array.isArray(users)){
             users = [];
         }
+
+        console.log('Utenti file eliminazione', request)
 
         const userIndex = users.findIndex(user => user.id === request.user.id);
 
