@@ -4,11 +4,11 @@
     "data": [
       {
         "key": "test",
-        "data": "Testo di prova"
+        "data": "VGVzdG8gZGkgcHJvdmE="
       },
       {
         "key": "prova",
-        "data": "Prova route data"
+        "data": "UHJvdmEgcm91dGUgZGF0YQ=="
       },
       {
         "key": "hello",
@@ -21,11 +21,11 @@
     "data": [
       {
         "key": "Ok",
-        "data": "Messaggio"
+        "data": "TWVzc2FnZ2lv"
       },
       {
         "key": "ciao",
-        "data": "Route data"
+        "data": "Um91dGUgZGF0YQ=="
       },
       {
         "key": "Greetings",
