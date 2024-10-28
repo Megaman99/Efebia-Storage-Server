@@ -33,18 +33,10 @@ async function userRoutes (fastify, options) {
             }
         }
     }, async (request, reply) => {
-        const password = request.body.password;
-        console.log('Password: ', password)
-        const email = request.body.email;
+        const {email, password} = request.body;
         console.log('Email: ', email)
-        let role = request.body.role;
-        console.log('Role: ', role)
-
-        // const {email, password} = request.body;
-
-        if(role !== 'admin' && role!== 'user'){
-            role = 'user';
-        }
+        console.log('Password: ', password)
+        const role = 'user';
 
         let users = fs.readFileSync(userFilePath, 'utf-8');
         users = JSON.parse(users || '[]')
@@ -66,11 +58,7 @@ async function userRoutes (fastify, options) {
 
         console.log('Hash: ', hash)
 
-        // const id_user = uuidv4();
-        // console.log('Id utente', id_user)
-
         const new_user = {
-            // id_user: id_user,
             email: email,
             password: hash,
             role: role
@@ -99,30 +87,24 @@ async function userRoutes (fastify, options) {
         }
     }, async (request, reply) => {
         const email = request.body.email;
-        console.log('Email: ', email)
         const password = request.body.password;
-        console.log('Password: ', password)
-        const role = request.body.role;
-        console.log('Role', role)
         
         let users = fs.readFileSync(userFilePath, 'utf-8');
         users = JSON.parse(users || '[]')
         if(!Array.isArray(users)){
             users = [];
         }
-        console.log('Lettura utenti file: ', users)
 
         let cript = crypto.createHash('sha256');
         cript.update(password)
         const hash_pwd = cript.digest('hex')
 
-        const user = users.find(user => user.email === email && user.password === hash_pwd && user.role === role);
+        const user = users.find(user => user.email === email && user.password === hash_pwd);
         if (!user) {
             return reply.status(401).send({ message: 'Credenziali non valide' });
         }
 
         const token = fastify.jwt.sign({ email: user.email, role: user.role });
-        console.log('Token', token)
         return reply.send({ token });
     })
 

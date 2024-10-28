@@ -8,5 +8,10 @@
     "email": "emanuele@gmail.com",
     "password": "a61a8adf60038792a2cb88e670b20540a9d6c2ca204ab754fc768950e79e7d36",
     "role": "user"
+  },
+  {
+    "email": "campora@gmail.com",
+    "password": "a61a8adf60038792a2cb88e670b20540a9d6c2ca204ab754fc768950e79e7d36",
+    "role": "user"
   }
 ]
