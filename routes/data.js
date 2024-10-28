@@ -12,10 +12,10 @@ async function dataRoutes (fastify, options) {
         secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
     })
 
-    const userFilePath = './data.json'
+    const dataFilePath = './data.json'
     
-    if (!fs.existsSync(userFilePath)) {
-        fs.writeFileSync(userFilePath, '[]', 'utf8');
+    if (!fs.existsSync(dataFilePath)) {
+        fs.writeFileSync(dataFilePath, '[]', 'utf8');
     }
 
 
@@ -48,7 +48,7 @@ async function dataRoutes (fastify, options) {
         const key = request.body.key;
         const email = request.user.email;
 
-        let data = fs.readFileSync(userFilePath, 'utf-8');
+        let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
             data = [];
@@ -76,7 +76,7 @@ async function dataRoutes (fastify, options) {
 
                     dat.data.push(new_data)
 
-                    fs.writeFile(userFilePath, JSON.stringify(data, null, 2), (err) => {
+                    fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
                         if (err) {
                             console.error(err);
                         } else {
@@ -104,31 +104,25 @@ async function dataRoutes (fastify, options) {
         }
     }, async (request, reply) => {
         const email = request.params.key;
-        console.log('Key: ', email)
         const role = request.user.role;
-        console.log('Role: ', role)
 
-        let data = fs.readFileSync(userFilePath, 'utf-8');
-        // data = JSON.parse(data || '[]')
-        // if(!Array.isArray(data)){
-        //     data = [];
-        // }
-        console.log('Lettura file data: ', data)
+        let data = fs.readFileSync(dataFilePath, 'utf-8');
+        data = JSON.parse(data || '[]')
+        if(!Array.isArray(data)){
+            data = [];
+        }
 
         await data.find(async function(dat){
             if(dat.email === email || role === 'admin'){
-                // Manca role admin
                 if(dat.data.length === 0){
                     return reply.send({data: 'Non ci sono dati per questo utente'})
                 }
                 console.log('Dat: ', dat.data)
-                // Manca decodifica base 64
                 let array = dat.data;
                 for(let i = 0; i < array.length; i++){
                     let buffer = Buffer.from(array[i].data, 'base64');
                     array[i].data = buffer.toString();
                 }
-                console.log('array', array)
                 return reply.send({data: array})
             }
             else{
@@ -167,7 +161,7 @@ async function dataRoutes (fastify, options) {
         let new_data = request.body.data;
         console.log('New data: ', new_data)
 
-        let data = fs.readFileSync(userFilePath, 'utf-8');
+        let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
             return reply.send({message: 'Errore nella lettura del file'})
@@ -188,7 +182,7 @@ async function dataRoutes (fastify, options) {
                 }
 
                 // console.log('Dati aggiornati: ', data[0])
-                fs.writeFileSync(userFilePath, JSON.stringify(data, null, 2), (writeErr) => {
+                fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (writeErr) => {
                     if (writeErr) {
                         return reply.send({message: 'Errore durante la modifica del dato'})
                     } else {
@@ -206,9 +200,49 @@ async function dataRoutes (fastify, options) {
     fastify.delete('/data/:key', {
         onRequest: [fastify.authenticate],
     }, async (request, reply) => {
-        const key = request.params.key;
+        const email_del = request.params.key;
+        console.log('Email del', email_del)
+        const email_log = request.user.email
+        console.log('Email log', email_log)
+        const key = request.body.key
+        console.log('Chiave da eliminare: ', key)
+        const role = request.user.role
+
+        let data = fs.readFileSync(dataFilePath, 'utf-8');
+        data = JSON.parse(data || '[]')
+        if(!Array.isArray(data)){
+            return reply.send({message: 'Errore nella lettura del file'})
+        }
+        console.log('Lettura file data: ', data)
         
-        reply.send({ title: 'Delete' })
+        const email_found = await data.find((obj) => obj.email === email_del)
+        const email_index = data.findIndex((obj) => obj.email === email_del)
+        console.log('Found: ', email_found)
+        if(email_found.email === email_del && email_del === email_log){
+            const result = await email_found.data.findIndex((el) => el.key === key)
+            console.log('Result: ', result)
+            if(result === -1){
+                return reply.send({message: 'Dato non trovato'})
+            }
+            
+            for(let i = 0; i < data.length; i++){
+                if(data[email_index].email === email_del){
+                    data[email_index].data.splice(result, 1)
+
+                    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (writeErr) => {
+                        if (writeErr) {
+                            return reply.send({message: 'Errore durante l\'eliminazione del dato'})
+                        } else {
+                            return reply.send({message: 'Dato eliminato correttamente'})
+                        }
+                    });
+                }
+            }
+        }
+        else{
+            return reply.send({message: 'Errore durante l\'eliminazione'})
+        }
+        return reply.send({ message: 'Eliminazione avvenuta con successo' })
     })
 }
 
