@@ -51,68 +51,108 @@ async function dataRoutes (fastify, options) {
             data = [];
         }
 
-        await data.find((dat) => {
-            if(dat.email === email){
-                let user_data = dat.data.find((obj) => {
-                    obj.key === key
-                })
-                if(user_data){
-                    return reply.status(401).send({ message: 'Esiste già una risorsa con questo nome' });
+        const user_found = await data.find(dat => dat.email === email);
+        if(user_found){
+            const check_key = user_found.data.find(el => el.key === key)
+            if(check_key){
+                return reply.send({message: 'Chiave già esistente'})
+            }
+            const new_message = Buffer.from(message).toString('base64')
+            user_found.data.push({key: key, data: new_message})
+            
+            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+                if (err) {
+                    return reply.send({message: 'Errore nella memorizzazione dei dati'})
+                } else {
+                    return reply.send({message: 'Dati memorizzati con successo'})
                 }
-                else{
-                    const buffer = Buffer.from(message)
-        
-                    const new_message = buffer.toString('base64')
+            })
+        }
+        else{
+            // Non esiste lo user e devo creare un nuovo campo
+            const new_message = Buffer.from(message).toString('base64')
 
-                    const new_data = {
+            data.push({
+                email: email,
+                data: [
+                    {
                         key: key,
                         data: new_message
-                    };
-
-                    dat.data.push(new_data)
-
-                    fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
-                        if (err) {
-                            return reply.send({message: 'Errore nella memorizzazione dei dati'})
-                        } else {
-                            return reply.send({message: 'Dati memorizzati con successo'})
-                        }
-                    })
-                }
-            }
-            else if(dat.email !== email){
-                console.log('Dat.email', dat.email)
-                console.log('Data: ', data)
-                const buffer = Buffer.from(message)
-                const data_insert = buffer.toString('base64')
-
-                const user_insert = {
-                    email: email,
-                    data: [
-                        {
-                            key: key,
-                            data: data_insert
-                        }
-                    ]
-                }
-                
-                data.push(user_insert)
-
-                fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
-                    if (err) {
-                        return reply.send({message: 'Errore nella memorizzazione dell\'utente e dei relativi dati'})
-                    } else {
-                        return reply.send({message: 'Dati memorizzati con successo'})
                     }
-                })
-            }
-            else{
-                return reply.send({message: 'Impossibile mandare i dati'})
-            }
-        });
+                ]
+            })
 
-        return reply.send({ message: `Dato scritto correttamente` })
-    })
+            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+                if (err) {
+                    return reply.send({message: 'Errore nella memorizzazione dei dati'})
+                } else {
+                    return reply.send({message: 'Dati memorizzati con successo'})
+                }
+            })
+        }
+            // console.log('Dat', dat, 'Email log: ', email, 'email.dat', dat.email)
+            // console.log(dat.email === email)
+            // if(dat.email === email){
+            //     let user_data = dat.data.find((obj) => {obj.key === key})
+            //     console.log('Controllo user_data', user_data)
+            //     if(user_data){
+            //         return reply.status(401).send({ message: 'Esiste già una risorsa con questo nome' });
+            //     }
+            //     else{
+            //         const buffer = Buffer.from(message)
+            //         const new_message = buffer.toString('base64')
+
+            //         const new_data = {
+            //             key: key,
+            //             data: new_message
+            //         };
+
+            //         console.log('Dat data pre: ', dat.data, 'New data pre: ', new_data)
+            //         dat.data.push(new_data)
+            //         console.log('Dat data post: ', dat.data, 'New data post: ', new_data)
+
+            //         fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+            //             if (err) {
+            //                 return reply.send({message: 'Errore nella memorizzazione dei dati'})
+            //             } else {
+            //                 return reply.send({message: 'Dati memorizzati con successo'})
+            //             }
+            //         })
+            //     }
+            // }
+            // else if(dat.email !== email){
+            //     console.log('Dat.email', dat.email)
+            //     console.log('Data: ', data)
+            //     const buffer = Buffer.from(message)
+            //     const data_insert = buffer.toString('base64')
+
+            //     const user_insert = {
+            //         email: email,
+            //         data: [
+            //             {
+            //                 key: key,
+            //                 data: data_insert
+            //             }
+            //         ]
+            //     }
+                
+            //     await data.push(user_insert)
+
+            //     fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+            //         if (err) {
+            //             return reply.send({message: 'Errore nella memorizzazione dell\'utente e dei relativi dati'})
+            //         } else {
+            //             return reply.send({message: 'Dati memorizzati con successo'})
+            //         }
+            //     })
+            // }
+            // else{
+            //     return reply.send({message: 'Impossibile mandare i dati'})
+            // }
+    });
+
+        // return reply.send({ message: `Dato scritto correttamente` })
+    // }
     
     fastify.get('/data/:key', {
         onRequest: [fastify.authenticate],
