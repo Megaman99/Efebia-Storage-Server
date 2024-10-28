@@ -60,13 +60,12 @@ async function dataRoutes (fastify, options) {
             const new_message = Buffer.from(message).toString('base64')
             user_found.data.push({key: key, data: new_message})
             
-            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
-                if (err) {
-                    return reply.send({message: 'Errore nella memorizzazione dei dati'})
-                } else {
-                    return reply.send({message: 'Dati memorizzati con successo'})
-                }
-            })
+            try {
+                fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+                return reply.send({ message: 'Dati memorizzati con successo' });
+            } catch (error) {
+                return reply.send({ message: 'Errore nella memorizzazione dei dati' });
+            }
         }
         else{
             // Non esiste lo user e devo creare un nuovo campo
@@ -82,13 +81,12 @@ async function dataRoutes (fastify, options) {
                 ]
             })
 
-            fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (err) => {
-                if (err) {
-                    return reply.send({message: 'Errore nella memorizzazione dei dati'})
-                } else {
-                    return reply.send({message: 'Dati memorizzati con successo'})
-                }
-            })
+            try {
+                fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+                return reply.send({ message: 'Dati memorizzati con successo' });
+            } catch (error) {
+                return reply.send({ message: 'Errore nella memorizzazione dei dati' });
+            }
         }     
     });
     
@@ -164,36 +162,33 @@ async function dataRoutes (fastify, options) {
         const email_log = request.user.email;
         const key = request.body.key;
         let new_data = request.body.data;
+        const role = request.user.role;
 
         let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
             return reply.send({message: 'Errore nella lettura del file'})
         }
-        const buffer = Buffer.from(new_data)
-        const data_insert = buffer.toString('base64');
-
-        await data.find(async function (obj){
-            if((obj.email === email_tomod && email_tomod === email_log) || role === 'admin'){
-                for(let i = 0; i < obj.data.length; i++){
-                    if(obj.data[i].key === key){
-                        obj.data[i].data = data_insert
-                    }
+        const data_insert = Buffer.from(new_data).toString('base64');
+        const user_found = data.find(obj => obj.email === email_tomod)
+        if(user_found && (email_tomod === email_log || role === 'admin')){
+            const tomod = user_found.data.find(el => el.key === key)
+            if(tomod){
+                tomod.data = data_insert
+                try {
+                    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+                    return reply.send({ message: 'Dato aggiornato correttamente' });
+                } catch (error) {
+                    return reply.send({ message: 'Errore durante la modifica del dato' });
                 }
-
-                fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (writeErr) => {
-                    if (writeErr) {
-                        return reply.send({message: 'Errore durante la modifica del dato'})
-                    } else {
-                        return reply.send({message: 'Dato aggiornato correttamente'})
-                    }
-                });
             }
             else{
-                return reply.send({message: 'Impossibile modificare i dati'})
+                return reply.send({message: 'Dato non trovato'})
             }
-        })
-        return reply.send({message: 'Dato modificato correttamente'})
+        }
+        else{
+            return reply.send({message: 'Impossibile modificare i dati'})
+        }
     })
 
     fastify.delete('/data/:key', {
@@ -223,13 +218,12 @@ async function dataRoutes (fastify, options) {
                 if(data[email_index].email === email_del){
                     data[email_index].data.splice(result, 1)
 
-                    fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (writeErr) => {
-                        if (writeErr) {
-                            return reply.send({message: 'Errore durante l\'eliminazione del dato'})
-                        } else {
-                            return reply.send({message: 'Dato eliminato correttamente'})
-                        }
-                    });
+                    try {
+                        fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
+                        return reply.send({ message: 'Dato eliminato correttamente' });
+                    } catch (error) {
+                        return reply.send({ message: 'Errore durante l\'eliminazione del dato' });
+                    }
                 }
             }
         }
