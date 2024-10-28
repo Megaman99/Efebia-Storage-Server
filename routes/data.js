@@ -114,7 +114,6 @@ async function dataRoutes (fastify, options) {
 
         const email_found = await data.find(dat => dat.email === email && dat.email === email_log)
         if(role === 'admin'){
-            console.log('Data', data)
             for(let i = 0; i < data.length; i++){
                 data[i].data.forEach(element => {
                     const buffer = Buffer.from(element.data, 'base64')
@@ -125,7 +124,6 @@ async function dataRoutes (fastify, options) {
             return reply.send({data: data})
         }
         else if(email_found){
-            console.log('Email found: ', email_found)
             let array = email_found.data;
             for(let i = 0; i < array.length; i++){
                 array[i].data = Buffer.from(array[i].data, 'base64').toString();
@@ -207,7 +205,6 @@ async function dataRoutes (fastify, options) {
         
         const email_found = await data.find((obj) => obj.email === email_del)
         const email_index = data.findIndex((obj) => obj.email === email_del)
-        console.log('Found: ', email_found)
         if(email_found.email === email_del && email_del === email_log){
             const result = await email_found.data.findIndex((el) => el.key === key)
             if(result === -1){
