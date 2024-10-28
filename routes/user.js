@@ -33,8 +33,6 @@ async function userRoutes (fastify, options) {
         }
     }, async (request, reply) => {
         const {email, password} = request.body;
-        console.log('Email: ', email)
-        console.log('Password: ', password)
         const role = 'user';
 
         let users = fs.readFileSync(userFilePath, 'utf-8');
@@ -42,20 +40,14 @@ async function userRoutes (fastify, options) {
         if(!Array.isArray(users)){
             users = [];
         }
-        console.log('Lettura utenti file: ', users)
 
         if (users.find(user => user.email === email)) {
-            console.log('Controllo user: ', users)
             return reply.status(400).send({ message: 'Utente già registrato' }); //Cercare errore giusto
         }
 
         const cript = crypto.createHash('sha256')
-        console.log('Cript: ', cript)
         cript.update(password)
-
         const hash = cript.digest('hex')
-
-        console.log('Hash: ', hash)
 
         const new_user = {
             email: email,
@@ -64,8 +56,6 @@ async function userRoutes (fastify, options) {
         };
 
         users.push(new_user);
-
-        console.log('Utenti: ', users)
         
         fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
 
@@ -128,19 +118,13 @@ async function userRoutes (fastify, options) {
             users = [];
         }
 
-        console.log('Utenti file eliminazione', request)
-
         const userIndex = users.findIndex(user => user.email === request.user.email);
 
         if (userIndex === -1) {
             return reply.status(404).send({ message: 'Utente non trovato' });
         }
 
-        console.log('Users: ', users)
-
         users.splice(userIndex, 1);
-
-        console.log('Users: ', users)
 
         fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
 

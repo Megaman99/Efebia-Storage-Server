@@ -42,9 +42,6 @@ async function dataRoutes (fastify, options) {
         }
     }, async (request, reply) => {
         const message = request.body.data;
-        console.log('Message: ', message)
-
-        console.log('Questa è la request: ', request)
         const key = request.body.key;
         const email = request.user.email;
 
@@ -53,7 +50,6 @@ async function dataRoutes (fastify, options) {
         if(!Array.isArray(data)){
             data = [];
         }
-        console.log('Lettura file data: ', data)
 
         await data.find((dat) => {
             if(dat.email === email){
@@ -67,7 +63,6 @@ async function dataRoutes (fastify, options) {
                     const buffer = Buffer.from(message)
         
                     const new_message = buffer.toString('base64')
-                    console.log('New Message', new_message)
 
                     const new_data = {
                         key: key,
@@ -78,14 +73,16 @@ async function dataRoutes (fastify, options) {
 
                     fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
                         if (err) {
-                            console.error(err);
+                            return reply.send({message: 'Errore nella memorizzazione dei dati'})
                         } else {
-                            console.log('Dati aggiunti con successo!');
+                            return reply.send({message: 'Dati memorizzati con successo'})
                         }
                     })
                 }
             }
-            // manca l'else
+            else{
+                return reply.send({message: 'Impossibile mandare i dati'})
+            }
         });
 
         return reply.send({ message: `Dato scritto correttamente` })
@@ -117,7 +114,6 @@ async function dataRoutes (fastify, options) {
                 if(dat.data.length === 0){
                     return reply.send({data: 'Non ci sono dati per questo utente'})
                 }
-                console.log('Dat: ', dat.data)
                 let array = dat.data;
                 for(let i = 0; i < array.length; i++){
                     let buffer = Buffer.from(array[i].data, 'base64');
@@ -153,35 +149,26 @@ async function dataRoutes (fastify, options) {
         }
     }, async (request, reply) => {
         const email_tomod = request.params.key;
-        console.log('Email to mod: ', email_tomod)
         const email_log = request.user.email;
-        console.log('Email logged: ', email_log)
         const key = request.body.key;
-        console.log('Key: ', key)
         let new_data = request.body.data;
-        console.log('New data: ', new_data)
 
         let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
             return reply.send({message: 'Errore nella lettura del file'})
         }
-        console.log('Lettura file data: ', data)
         const buffer = Buffer.from(new_data)
         const data_insert = buffer.toString('base64');
-        console.log('Data insert', data_insert)
 
         await data.find(async function (obj){
             if((obj.email === email_tomod && email_tomod === email_log) || role === 'admin'){
-                // console.log('Obj', obj)
                 for(let i = 0; i < obj.data.length; i++){
-                    console.log('Obj', obj.data[i])
                     if(obj.data[i].key === key){
                         obj.data[i].data = data_insert
                     }
                 }
 
-                // console.log('Dati aggiornati: ', data[0])
                 fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), (writeErr) => {
                     if (writeErr) {
                         return reply.send({message: 'Errore durante la modifica del dato'})
@@ -201,11 +188,8 @@ async function dataRoutes (fastify, options) {
         onRequest: [fastify.authenticate],
     }, async (request, reply) => {
         const email_del = request.params.key;
-        console.log('Email del', email_del)
         const email_log = request.user.email
-        console.log('Email log', email_log)
         const key = request.body.key
-        console.log('Chiave da eliminare: ', key)
         const role = request.user.role
 
         let data = fs.readFileSync(dataFilePath, 'utf-8');
@@ -213,14 +197,12 @@ async function dataRoutes (fastify, options) {
         if(!Array.isArray(data)){
             return reply.send({message: 'Errore nella lettura del file'})
         }
-        console.log('Lettura file data: ', data)
         
         const email_found = await data.find((obj) => obj.email === email_del)
         const email_index = data.findIndex((obj) => obj.email === email_del)
         console.log('Found: ', email_found)
         if(email_found.email === email_del && email_del === email_log){
             const result = await email_found.data.findIndex((el) => el.key === key)
-            console.log('Result: ', result)
             if(result === -1){
                 return reply.send({message: 'Dato non trovato'})
             }
