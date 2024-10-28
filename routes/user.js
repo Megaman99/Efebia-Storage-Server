@@ -4,13 +4,12 @@ import fs, { readFileSync } from 'fs'
 import crypto from 'crypto'
 import fastify from 'fastify'
 import fastifyJwt from '@fastify/jwt'
-// import { v4 as uuidv4 } from 'uuid';
 
 
 async function userRoutes (fastify, options) { 
     
     fastify.register(fastifyJwt, {
-        secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
+        secret: process.env.JWT_SECRET
     })
 
     const userFilePath = './users.json'

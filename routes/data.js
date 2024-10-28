@@ -9,7 +9,7 @@ import { format } from 'path'
 async function dataRoutes (fastify, options) {
 
     fastify.register(fastifyJwt, {
-        secret: 'f45471d7322c299b9f160de66a937be2a020647a452019d9d0f0ec2d58ba7bb2'
+        secret: process.env.JWT_SECRET
     })
 
     const dataFilePath = './data.json'

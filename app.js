@@ -1,9 +1,9 @@
 'use strict'
 
 import Fastify from 'fastify'
-// import fastifyJwt from '@fastify/jwt'
 import userRoute from './routes/user.js'
 import dataRoute from './routes/data.js'
+import dotenv from 'dotenv'
 
 const fastify = Fastify({
   logger: true
@@ -11,6 +11,8 @@ const fastify = Fastify({
   //   prettyprint: true
   // }
 })
+
+dotenv.config()
 
 fastify.register(userRoute)
 fastify.register(dataRoute)
