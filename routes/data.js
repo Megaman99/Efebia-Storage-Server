@@ -131,45 +131,14 @@ async function dataRoutes (fastify, options) {
             let array = email_found.data;
             for(let i = 0; i < array.length; i++){
                 array[i].data = Buffer.from(array[i].data, 'base64').toString();
-                // array[i].data = buffer.toString();
             }
             return reply.send({data: array})
-            // return reply.send({message: 'stop'})
         }
         else{
             // L'user non admin non può accedere ai dati
             // Errore generico in modo da non dare informazioni a chi prova ad accedere a dati non propri
             return reply.send({message: 'Impossibile trovare i dati richiesti'})
         }
-
-        // await data.find(async function(dat){
-        //     if(dat.email === email){
-        //         if(dat.data.length === 0){
-        //             return reply.send({data: 'Non ci sono dati per questo utente'})
-        //         }
-        //         let array = dat.data;
-        //         for(let i = 0; i < array.length; i++){
-        //             let buffer = Buffer.from(array[i].data, 'base64');
-        //             array[i].data = buffer.toString();
-        //         }
-        //         return reply.send({data: array})
-        //     }
-        //     else if(role === 'admin'){
-        //         console.log('Data', data)
-        //         for(let i = 0; i < data.length; i++){
-        //             data[i].data.forEach(element => {
-        //                 const buffer = Buffer.from(element.data, 'base64')
-        //                 const converted = buffer.toString();
-        //                 element.data = converted;
-        //             });
-        //         }
-        //         return reply.send({data: data})
-        //     }
-        //     else{
-        //         
-        //         return reply.send({message: 'Nessun dato presente'})
-        //     }
-        // })
     })
 
     fastify.patch('/data/:key', {
