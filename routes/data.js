@@ -80,6 +80,9 @@ async function dataRoutes (fastify, options) {
                     })
                 }
             }
+            else if(''){
+
+            }
             else{
                 return reply.send({message: 'Impossibile mandare i dati'})
             }
@@ -125,10 +128,8 @@ async function dataRoutes (fastify, options) {
                 console.log('Data', data)
                 for(let i = 0; i < data.length; i++){
                     data[i].data.forEach(element => {
-                        console.log('Element: ', element)
                         const buffer = Buffer.from(element.data, 'base64')
                         const converted = buffer.toString();
-                        console.log('Converted: ', converted)
                         element.data = converted;
                     });
                 }
@@ -137,7 +138,7 @@ async function dataRoutes (fastify, options) {
             else{
                 // L'user non admin non può accedere ai dati
                 // Errore generico in modo da non dare informazioni a chi prova ad accedere a dati non propri
-                return reply.send({message: 'Errore nella visualizzazione'})
+                return reply.send({message: 'Nessun dato presente'})
             }
         })
     })
