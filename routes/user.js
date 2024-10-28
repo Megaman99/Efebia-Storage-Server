@@ -109,24 +109,38 @@ async function userRoutes (fastify, options) {
 
     // Delete
     fastify.delete('/delete', {
-            onRequest: [fastify.authenticate]
+            onRequest: [fastify.authenticate],
+            schema: {
+                body: {
+                    type: 'object',
+                    required: ['email'],
+                    properties: {
+                        email: {type: 'string', format: 'email'}
+                    }
+                }
+            }
         }, async (request, reply) => {
 
+        const email = request.body.email
         let users = fs.readFileSync(userFilePath, 'utf-8');
         users = JSON.parse(users || '[]')
         if(!Array.isArray(users)){
             users = [];
         }
-
-        const userIndex = users.findIndex(user => user.email === request.user.email);
-
-        if (userIndex === -1) {
-            return reply.status(404).send({ message: 'Utente non trovato' });
+        if(email === request.user.email){
+            const userIndex = users.findIndex(user => user.email === request.user.email);
+            
+            if (userIndex === -1) {
+                return reply.status(404).send({ message: 'Utente non trovato' });
+            }
+            
+            users.splice(userIndex, 1);
+            
+            fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
         }
-
-        users.splice(userIndex, 1);
-
-        fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
+        else{
+            return reply.send({message: 'Impossibile eliminare l\'utenza'})
+        }
 
         return reply.send({ message: 'Utente eliminato con successo' });
     })
