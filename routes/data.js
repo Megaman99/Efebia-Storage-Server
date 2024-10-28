@@ -4,6 +4,7 @@ import fs, { readFileSync } from 'fs'
 import crypto from 'crypto'
 import fastify from 'fastify'
 import fastifyJwt from '@fastify/jwt'
+import { format } from 'path'
 
 async function dataRoutes (fastify, options) {
 
@@ -108,12 +109,10 @@ async function dataRoutes (fastify, options) {
         console.log('Role: ', role)
 
         let data = fs.readFileSync(userFilePath, 'utf-8');
-        data = JSON.parse(data || '[]')
-        
-        // Da ricontrollare
-        if(!Array.isArray(data)){
-            data = [];
-        }
+        // data = JSON.parse(data || '[]')
+        // if(!Array.isArray(data)){
+        //     data = [];
+        // }
         console.log('Lettura file data: ', data)
 
         await data.find(async function(dat){
@@ -135,7 +134,7 @@ async function dataRoutes (fastify, options) {
             else{
                 // L'user non admin non può accedere ai dati
                 // Errore generico in modo da non dare informazioni a chi prova ad accedere a dati non propri
-                return reply.send({data: 'Errore nella visualizzazione'})
+                return reply.send({message: 'Errore nella visualizzazione'})
             }
         })
     })
@@ -147,14 +146,61 @@ async function dataRoutes (fastify, options) {
                 type: 'object',
                 required: ['key'],
                 properties: {
+                    key: {type: 'string', format: 'email'}
+                }
+            },
+            body: {
+                type: 'object',
+                required: ['key'],
+                properties: {
                     key: {type: 'string'}
                 }
             }
         }
     }, async (request, reply) => {
-        const key = request.params.key;
+        const email_tomod = request.params.key;
+        console.log('Email to mod: ', email_tomod)
+        const email_log = request.user.email;
+        console.log('Email logged: ', email_log)
+        const key = request.body.key;
         console.log('Key: ', key)
-        reply.send({ title: '' })
+        let new_data = request.body.data;
+        console.log('New data: ', new_data)
+
+        let data = fs.readFileSync(userFilePath, 'utf-8');
+        data = JSON.parse(data || '[]')
+        if(!Array.isArray(data)){
+            return reply.send({message: 'Errore nella lettura del file'})
+        }
+        console.log('Lettura file data: ', data)
+        const buffer = Buffer.from(new_data)
+        const data_insert = buffer.toString('base64');
+        console.log('Data insert', data_insert)
+
+        await data.find(async function (obj){
+            if((obj.email === email_tomod && email_tomod === email_log) || role === 'admin'){
+                // console.log('Obj', obj)
+                for(let i = 0; i < obj.data.length; i++){
+                    console.log('Obj', obj.data[i])
+                    if(obj.data[i].key === key){
+                        obj.data[i].data = data_insert
+                    }
+                }
+
+                // console.log('Dati aggiornati: ', data[0])
+                fs.writeFileSync(userFilePath, JSON.stringify(data, null, 2), (writeErr) => {
+                    if (writeErr) {
+                        return reply.send({message: 'Errore durante la modifica del dato'})
+                    } else {
+                        return reply.send({message: 'Dato aggiornato correttamente'})
+                    }
+                });
+            }
+            else{
+                return reply.send({message: 'Impossibile modificare i dati'})
+            }
+        })
+        return reply.send({message: 'Dato modificato correttamente'})
     })
 
     fastify.delete('/data/:key', {
