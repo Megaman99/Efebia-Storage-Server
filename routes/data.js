@@ -110,7 +110,7 @@ async function dataRoutes (fastify, options) {
         }
 
         await data.find(async function(dat){
-            if(dat.email === email || role === 'admin'){
+            if(dat.email === email){
                 if(dat.data.length === 0){
                     return reply.send({data: 'Non ci sono dati per questo utente'})
                 }
@@ -120,6 +120,19 @@ async function dataRoutes (fastify, options) {
                     array[i].data = buffer.toString();
                 }
                 return reply.send({data: array})
+            }
+            else if(role === 'admin'){
+                console.log('Data', data)
+                for(let i = 0; i < data.length; i++){
+                    data[i].data.forEach(element => {
+                        console.log('Element: ', element)
+                        const buffer = Buffer.from(element.data, 'base64')
+                        const converted = buffer.toString();
+                        console.log('Converted: ', converted)
+                        element.data = converted;
+                    });
+                }
+                return reply.send({data: data})
             }
             else{
                 // L'user non admin non può accedere ai dati
