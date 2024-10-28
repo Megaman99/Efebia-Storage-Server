@@ -80,8 +80,31 @@ async function dataRoutes (fastify, options) {
                     })
                 }
             }
-            else if(''){
+            else if(dat.email !== email){
+                console.log('Dat.email', dat.email)
+                console.log('Data: ', data)
+                const buffer = Buffer.from(message)
+                const data_insert = buffer.toString('base64')
 
+                const user_insert = {
+                    email: email,
+                    data: [
+                        {
+                            key: key,
+                            data: data_insert
+                        }
+                    ]
+                }
+                
+                data.push(user_insert)
+
+                fs.writeFile(dataFilePath, JSON.stringify(data, null, 2), (err) => {
+                    if (err) {
+                        return reply.send({message: 'Errore nella memorizzazione dell\'utente e dei relativi dati'})
+                    } else {
+                        return reply.send({message: 'Dati memorizzati con successo'})
+                    }
+                })
             }
             else{
                 return reply.send({message: 'Impossibile mandare i dati'})
