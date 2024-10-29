@@ -127,6 +127,14 @@ async function userRoutes (fastify, options) {
         if(!Array.isArray(users)){
             users = [];
         }
+
+        const dataFilePath = './data.json'
+        let data = fs.readFileSync(dataFilePath, 'utf-8');
+        data = JSON.parse(data || '[]')
+        if(!Array.isArray(data)){
+            data = [];
+        }
+
         if(email === request.user.email){
             const userIndex = users.findIndex(user => user.email === request.user.email);
             
@@ -137,11 +145,16 @@ async function userRoutes (fastify, options) {
             users.splice(userIndex, 1);
             
             fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
+
+            const data_index = data.findIndex(dat => dat.email === email)
+            if(data_index !== -1){
+                data.splice(data_index, 1);
+                fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8')
+            }
         }
         else{
             return reply.send({message: 'Impossibile eliminare l\'utenza'})
         }
-
         return reply.send({ message: 'Utente eliminato con successo' });
     })
 }
