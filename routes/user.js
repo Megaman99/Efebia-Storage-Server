@@ -42,7 +42,7 @@ async function userRoutes (fastify, options) {
         }
 
         if (users.find(user => user.email === email)) {
-            return reply.status(400).send({ message: 'Utente già registrato' }); //Cercare errore giusto
+            return reply.status(400).send({ message: 'Utente già registrato' });
         }
 
         const cript = crypto.createHash('sha256')
