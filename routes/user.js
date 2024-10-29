@@ -42,7 +42,7 @@ async function userRoutes (fastify, options) {
         }
 
         if (users.find(user => user.email === email)) {
-            return reply.status(400).send({ message: 'Utente già registrato' });
+            return reply.status(409).send({ error: 'Conflict', message: 'Utente già registrato' });
         }
 
         const cript = crypto.createHash('sha256')
@@ -59,7 +59,7 @@ async function userRoutes (fastify, options) {
         
         fs.writeFileSync(userFilePath, JSON.stringify(users, null, 2), 'utf8');
 
-        return reply.send({ message: `Utente registrato correttamente` })
+        return reply.status(201).send({ message: 'Utente registrato correttamente' });
     })
 
     // Login
@@ -94,7 +94,7 @@ async function userRoutes (fastify, options) {
         }
 
         const token = fastify.jwt.sign({ email: user.email, role: user.role });
-        return reply.send({ token });
+        return reply.status(200).send({ message: 'Autenticazione riuscita', token });
     })
 
 
@@ -103,7 +103,7 @@ async function userRoutes (fastify, options) {
         try {
             await request.jwtVerify()
         } catch (err) {
-            reply.send(err)
+            return reply.status(401).send({ error: 'Unauthorized', message: 'Autenticazione non valida' });
         }
     })
 
@@ -139,7 +139,7 @@ async function userRoutes (fastify, options) {
             const userIndex = users.findIndex(user => user.email === request.user.email);
             
             if (userIndex === -1) {
-                return reply.status(404).send({ message: 'Utente non trovato' });
+                return reply.status(404).send({ error: 'Not found', message: 'Utente non trovato' });
             }
             
             users.splice(userIndex, 1);
@@ -153,9 +153,9 @@ async function userRoutes (fastify, options) {
             }
         }
         else{
-            return reply.send({message: 'Impossibile eliminare l\'utenza'})
+            return reply.status(403).send({ error: 'Forbidden', message: 'Impossibile eliminare l\'utenza' });
         }
-        return reply.send({ message: 'Utente eliminato con successo' });
+        return reply.status(200).send({ message: 'Utente eliminato con successo' });
     })
 }
 

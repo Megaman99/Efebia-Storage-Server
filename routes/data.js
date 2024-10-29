@@ -24,7 +24,7 @@ async function dataRoutes (fastify, options) {
         try {
             await request.jwtVerify()
         } catch (err) {
-            reply.send(err)
+            return reply.status(401).send({ error: 'Unauthorized', message: 'Autenticazione non valida' });
         }
     })
 
@@ -55,20 +55,19 @@ async function dataRoutes (fastify, options) {
         if(user_found){
             const check_key = user_found.data.find(el => el.key === key)
             if(check_key){
-                return reply.send({message: 'Chiave già esistente'})
+                return reply.status(409).send({ error: 'Conflict', message: 'Chiave già esistente' });
             }
             const new_message = Buffer.from(message).toString('base64')
             user_found.data.push({key: key, data: new_message})
             
             try {
                 fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
-                return reply.send({ message: 'Dati memorizzati con successo' });
+                return reply.status(201).send({ message: 'Dati memorizzati con successo' });
             } catch (error) {
-                return reply.send({ message: 'Errore nella memorizzazione dei dati' });
+                return reply.status(500).send({ error: 'Internal server error', message: 'Errore nella memorizzazione dei dati' });
             }
         }
         else{
-            // Non esiste lo user e devo creare un nuovo campo
             const new_message = Buffer.from(message).toString('base64')
 
             data.push({
@@ -83,9 +82,9 @@ async function dataRoutes (fastify, options) {
 
             try {
                 fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
-                return reply.send({ message: 'Dati memorizzati con successo' });
+                return reply.status(201).send({ message: 'Dati memorizzati con successo' });
             } catch (error) {
-                return reply.send({ message: 'Errore nella memorizzazione dei dati' });
+                return reply.status(500).send({ error: 'Internal server error', message: 'Errore nella memorizzazione dei dati' });
             }
         }     
     });
@@ -121,19 +120,17 @@ async function dataRoutes (fastify, options) {
                     element.data = converted;
                 });
             }
-            return reply.send({data: data})
+            return reply.status(200).send({ message: 'Dati recuperati con successo', data });
         }
         else if(email_found){
             let array = email_found.data;
             for(let i = 0; i < array.length; i++){
                 array[i].data = Buffer.from(array[i].data, 'base64').toString();
             }
-            return reply.send({data: array})
+            return reply.status(200).send({ message: 'Dati recuperati con successo', array });
         }
         else{
-            // L'user non admin non può accedere ai dati
-            // Errore generico in modo da non dare informazioni a chi prova ad accedere a dati non propri
-            return reply.send({message: 'Impossibile trovare i dati richiesti'})
+            return reply.status(403).send({ error: 'Forbidden', message: 'Impossibile trovare i dati richiesti' });
         }
     })
 
@@ -165,7 +162,7 @@ async function dataRoutes (fastify, options) {
         let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
-            return reply.send({message: 'Errore nella lettura del file'})
+            return reply.status(500).send({ error: 'Internal server error', message: 'Impossibile accedere ai dati' });
         }
         const data_insert = Buffer.from(new_data).toString('base64');
         const user_found = data.find(obj => obj.email === email_tomod)
@@ -175,17 +172,17 @@ async function dataRoutes (fastify, options) {
                 tomod.data = data_insert
                 try {
                     fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
-                    return reply.send({ message: 'Dato aggiornato correttamente' });
+                    return reply.status(200).send({ message: 'Dato aggiornato correttamente' });
                 } catch (error) {
-                    return reply.send({ message: 'Errore durante la modifica del dato' });
+                    return reply.status(500).send({ error: 'Internal server error', message: 'Errore durante la modifica del dato'});
                 }
             }
             else{
-                return reply.send({message: 'Dato non trovato'})
+                return reply.status(404).send({ error: 'Not found', message: 'Dato non trovato' });
             }
         }
         else{
-            return reply.send({message: 'Impossibile modificare i dati'})
+            return reply.status(403).send({ error: 'Forbidden', message: 'Impossibile modificare i dati' });
         }
     })
 
@@ -200,7 +197,7 @@ async function dataRoutes (fastify, options) {
         let data = fs.readFileSync(dataFilePath, 'utf-8');
         data = JSON.parse(data || '[]')
         if(!Array.isArray(data)){
-            return reply.send({message: 'Errore nella lettura del file'})
+            return reply.status(500).send({ error: 'Internal server error', message: 'Errore nella lettura del file' });
         }
         
         const email_found = await data.find((obj) => obj.email === email_del)
@@ -208,7 +205,7 @@ async function dataRoutes (fastify, options) {
         if(email_found.email === email_del && email_del === email_log){
             const result = await email_found.data.findIndex((el) => el.key === key)
             if(result === -1){
-                return reply.send({message: 'Dato non trovato'})
+                return reply.status(404).send({ error: 'Not found', message: 'Dato non trovato' });
             }
             
             for(let i = 0; i < data.length; i++){
@@ -217,17 +214,18 @@ async function dataRoutes (fastify, options) {
 
                     try {
                         fs.writeFileSync(dataFilePath, JSON.stringify(data, null, 2), 'utf8');
-                        return reply.send({ message: 'Dato eliminato correttamente' });
+                        return reply.status(204).send({ message: 'Dato eliminato correttamente' });
                     } catch (error) {
-                        return reply.send({ message: 'Errore durante l\'eliminazione del dato' });
+                        return reply.status(500).send({ error: 'Internal server error', message: 'Errore durante l\'eliminazione del dato' });
                     }
                 }
             }
         }
         else{
-            return reply.send({message: 'Errore durante l\'eliminazione'})
+            // return reply.send({message: 'Errore durante l\'eliminazione'})
+            return reply.status(403).send({ error: 'Forbidden', message: 'Errore durante l\'eliminazione' });
         }
-        return reply.send({ message: 'Eliminazione avvenuta con successo' })
+        return reply.status(204).send({ message: 'Eliminazione avvenuta con successo' });
     })
 }
 
