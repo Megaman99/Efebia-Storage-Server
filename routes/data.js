@@ -222,7 +222,6 @@ async function dataRoutes (fastify, options) {
             }
         }
         else{
-            // return reply.send({message: 'Errore durante l\'eliminazione'})
             return reply.status(403).send({ error: 'Forbidden', message: 'Errore durante l\'eliminazione' });
         }
         return reply.status(204).send({ message: 'Eliminazione avvenuta con successo' });
